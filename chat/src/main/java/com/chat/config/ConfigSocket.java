@@ -19,7 +19,7 @@ public class ConfigSocket implements WebSocketMessageBrokerConfigurer {
 
 
         registry.addEndpoint("/chat-websocket")
-                .setAllowedOrigins("http://localhost:4200") // Dominios permitidos
+                .setAllowedOrigins("http://localhost:4200", "http://127.0.0.1") // Dominios permitidos
                 .withSockJS();
     }
 
