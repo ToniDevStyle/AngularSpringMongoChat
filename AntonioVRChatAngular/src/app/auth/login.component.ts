@@ -1,29 +1,39 @@
 import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';  // Importar FormsModule
-import { Router } from '@angular/router';  // Importar Router
-import { RouterModule } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';  // Si quieres redirigir al usuario después de un login exitoso
+import { FormsModule } from '@angular/forms';
+
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
-  standalone: true,  // Marcar el componente como standalone
-  imports: [FormsModule, RouterModule],  // Importar FormsModule directamente en el componente
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
   username: string = '';
   password: string = '';
+  errorMessage: string = '';
 
-  constructor(private router: Router) {}  // Inyectar el servicio Router
+  constructor(private authService: AuthService, private router: Router) {}
 
-  login() {
-    // Aquí va la lógica de inicio de sesión
-    console.log('Logged in with:', this.username, this.password);
-    // Redirigir al chat o a la página que corresponda después de iniciar sesión
-    this.router.navigate(['/chat']);
-  }
+  // Método que debe coincidir con el template
+  login(): void {
+    const credentials = {
+      username: this.username,
+      password: this.password
+    };
 
-  navigateToRegister() {
-    // Navegar al componente de registro
-    this.router.navigate(['/register']);
+    this.authService.login(credentials).subscribe({
+      next: (token) => {
+        console.log('Login exitoso', token);
+        // Guarda el token en el almacenamiento local
+        this.authService.saveToken(token);
+        // Redirigir al usuario después de login exitoso (si lo deseas)
+        this.router.navigate(['/dashboard']);
+      },
+      error: (err) => {
+        console.error('Error al hacer login', err);
+        this.errorMessage = 'Credenciales inválidas, por favor intenta de nuevo.';
+      }
+    });
   }
 }

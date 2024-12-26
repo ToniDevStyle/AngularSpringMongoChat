@@ -1,30 +1,50 @@
 import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';  // Importar FormsModule
-import { Router, RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../services/auth.service'; // Importa AuthService
+
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],
-  standalone: true,  // Marcar el componente como standalone
-  imports: [FormsModule, RouterModule],  // Importar FormsModule directamente en el componente
+  standalone: true,
+  imports: [FormsModule, CommonModule],
 })
 export class RegisterComponent {
   username: string = '';
   password: string = '';
   confirmPassword: string = '';
+  errorMessage: string = '';
 
-  constructor(private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   register() {
-    if (this.password === this.confirmPassword) {
-      // Aquí va la lógica de registro
-      console.log('Registered with:', this.username, this.password);
-    } else {
-      console.error('Passwords do not match');
+    if (!this.username || !this.password || !this.confirmPassword) {
+      this.errorMessage = 'All fields are required';
+      return;
     }
+
+    if (this.password !== this.confirmPassword) {
+      this.errorMessage = 'Passwords do not match';
+      return;
+    }
+
+    this.authService
+      .register({ username: this.username, password: this.password })
+      .subscribe(
+        (response) => {
+          this.authService.saveToken(response.token); // Guarda el token
+          this.router.navigate(['/chat']); // Redirige al chat
+        },
+        (error) => {
+          this.errorMessage = 'Registration failed. Please try again.';
+          console.error(error);
+        }
+      );
   }
 
   navigateToLogin() {
-    this.router.navigate(['/login']);  // Navega a la página de login
+    this.router.navigate(['/login']);
   }
 }

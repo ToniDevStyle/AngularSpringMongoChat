@@ -1,60 +1,71 @@
 package com.chat.controller;
 
-import com.chat.models.User;
 import com.chat.service.AuthService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.chat.utils.JwtUtil;
+import com.chat.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.chat.utils.JwtUtil;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
-
-
     @Autowired
     private AuthService authService;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-        log.info("Received registration request for user: {}", user.getUsername());
-
-        try {
-            User registeredUser = authService.register(user);
-            log.info("Username: {}", user.getUsername());
-            log.info("Encrypted Password: {}", user.getPassword());
-
-            return ResponseEntity.ok(registeredUser);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error during registration: " + e.getMessage());
-        }
-    }
-
-    @GetMapping("/health")
-    public ResponseEntity<String> healthCheck() {
-        log.info("Health check endpoint accessed.");
-        return ResponseEntity.ok("Backend is running.");
-    }
-
+    @Autowired
+    private JwtUtil jwtUtil;  // Inject JwtUtil for token generation
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user) {
+        // Check if the username and password are provided
+        if (user.getUsername() == null || user.getUsername().isEmpty() || user.getPassword() == null || user.getPassword().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username and password must not be empty.");
+        }
+
         try {
+            // Attempt login with the provided credentials
             User loggedInUser = authService.login(user.getUsername(), user.getPassword());
 
             if (loggedInUser != null) {
-                // Generar y devolver el token JWT
-                String token = JwtUtil.generateToken(loggedInUser.getUsername());
-                return ResponseEntity.ok(token);
+                // Generate JWT token for the logged-in user
+                String token = jwtUtil.generateToken(loggedInUser.getUsername());
+                return ResponseEntity.ok(token); // Return token with 200 OK status
             } else {
-                return ResponseEntity.status(401).body("Invalid credentials");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
             }
         } catch (Exception ex) {
-            return ResponseEntity.status(500).body("Server error: " + ex.getMessage());
+            // Return server error in case of any exception
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server error: " + ex.getMessage());
+        }
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<Object> register(@RequestBody User user) {
+        // Validate username and password
+        if (user.getUsername() == null || user.getUsername().isEmpty() || user.getPassword() == null || user.getPassword().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username and password must not be empty.");
+        }
+
+        try {
+            // Check if the user already exists
+            if (authService.userExists(user.getUsername())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username already exists.");
+            }
+
+            // Register the new user
+            User registeredUser = authService.register(user);
+
+            if (registeredUser != null) {
+                return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully.");
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User registration failed.");
+            }
+        } catch (Exception ex) {
+            // Return error message in case of any exception during registration
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server error: " + ex.getMessage());
         }
     }
 }

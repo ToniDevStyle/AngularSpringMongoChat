@@ -2,6 +2,7 @@ package com.chatservice.chat;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 
@@ -11,6 +12,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 		"com.chat.service",
 })
 @EnableMongoRepositories(basePackages = "com.chat.repositories")
+@ComponentScan(basePackages = "com.chat")
 public class ChatApplication {
 
 
