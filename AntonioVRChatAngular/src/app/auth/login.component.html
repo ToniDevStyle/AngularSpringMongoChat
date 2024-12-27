@@ -1,35 +1,52 @@
-<div class="login-container">
-  <h2>Login</h2>
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title text-center">Login</h5>
+          
+          <!-- Formulario de login -->
+          <form (ngSubmit)="login()">
+            <!-- Campo de nombre de usuario -->
+            <div class="mb-3">
+              <label for="username">Username</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="username" 
+                placeholder="Enter your username"
+                [(ngModel)]="username" 
+                name="username" 
+                required
+              />
+            </div>
 
-  <form (ngSubmit)="login()">
-    <div>
-      <label for="username">Username</label>
-      <input
-        type="text"
-        id="username"
-        [(ngModel)]="username"
-        name="username"
-        required
-        placeholder="Enter your username"
-      />
+            <!-- Campo de contraseña -->
+            <div class="mb-3">
+              <label for="password">Password</label>
+              <input 
+                type="password" 
+                class="form-control" 
+                id="password" 
+                placeholder="Enter your password"
+                [(ngModel)]="password" 
+                name="password" 
+                required
+              />
+            </div>
+
+            
+
+            <!-- Botón de login -->
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+          </form>
+
+          <!-- Enlace para ir al registro -->
+          <div class="text-center mt-3">
+            <p>No tienes una cuenta? <a [routerLink]="['/register']">Registrate</a></p>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <div>
-      <label for="password">Password</label>
-      <input
-        type="password"
-        id="password"
-        [(ngModel)]="password"
-        name="password"
-        required
-        placeholder="Enter your password"
-      />
-    </div>
-
-    <button type="submit">Login</button>
-
-    <div *ngIf="errorMessage" class="error-message">
-      {{ errorMessage }}
-    </div>
-  </form>
+  </div>
 </div>
